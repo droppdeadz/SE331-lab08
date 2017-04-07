@@ -4,11 +4,13 @@ import camt.cbsd.dao.StudentDao;
 import camt.cbsd.entity.Student;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
+import javax.transaction.Transactional;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -17,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -33,15 +36,22 @@ public class StudentServiceImpl implements StudentService {
     public void setImageServerDir(String imageServerDir) {
         this.imageServerDir = imageServerDir;
     }
-
+    @Override
+    @Transactional
     public List<Student> getStudents(){
-
+        List<Student> students = studentDao.getStudents();
+        for(Student student:students){
+            Hibernate.initialize(student.getEnrolledCourse());
+        }
         return studentDao.getStudents();
-    }
+        }
 
     @Override
-    public Student findById(long id) {
-        return studentDao.findById(id);
+    @Transactional
+    public Student findById(long id){
+        Student student = studentDao.findById(id);
+        Hibernate.initialize(student.getEnrolledCourse());
+        return student;
     }
 
     @Override
@@ -61,4 +71,6 @@ public class StudentServiceImpl implements StudentService {
         studentDao.addStudent(student);
         return student;
     }
+
+
 }
